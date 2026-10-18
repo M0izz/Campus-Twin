@@ -25,8 +25,8 @@ export const DEFAULT_CAMPUS_SCENARIO: Scenario = {
       floors: 3,
       wallAttenuationDb: 14,
       category: 'academic',
-      color: '#1e293b',
-      roofColor: '#334155',
+      color: '#F2EFE8',
+      roofColor: '#384850',
     },
     {
       id: 'bldg-lovelace',
@@ -37,8 +37,8 @@ export const DEFAULT_CAMPUS_SCENARIO: Scenario = {
       floors: 2,
       wallAttenuationDb: 11,
       category: 'library',
-      color: '#1e293b',
-      roofColor: '#2563eb',
+      color: '#F2EFE8',
+      roofColor: '#4A5C66',
     },
     {
       id: 'bldg-lecture',
@@ -49,8 +49,8 @@ export const DEFAULT_CAMPUS_SCENARIO: Scenario = {
       floors: 2,
       wallAttenuationDb: 15,
       category: 'academic',
-      color: '#1e293b',
-      roofColor: '#7c3aed',
+      color: '#F2EFE8',
+      roofColor: '#5C4D44',
     },
     {
       id: 'bldg-hub',
@@ -61,8 +61,8 @@ export const DEFAULT_CAMPUS_SCENARIO: Scenario = {
       floors: 1,
       wallAttenuationDb: 8,
       category: 'student-hub',
-      color: '#1e293b',
-      roofColor: '#059669',
+      color: '#F2EFE8',
+      roofColor: '#45564F',
     },
   ],
   accessPoints: [

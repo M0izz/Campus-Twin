@@ -11,6 +11,11 @@ import {
   Tag,
   CircleDot,
   GitBranch,
+  Radio,
+  Users,
+  AlertTriangle,
+  AlertCircle,
+  Activity,
 } from 'lucide-react';
 
 export const Toolbar: React.FC = () => {
@@ -113,59 +118,125 @@ export const Toolbar: React.FC = () => {
           </div>
 
           <div className="flyout-body">
-            {/* Heatmap Layer */}
+            {/* 1. Campus and Building Geometry */}
+            <label className="flyout-layer-row">
+              <input
+                type="checkbox"
+                checked={visualLayers.buildingGeometry}
+                onChange={() => toggleLayer('buildingGeometry')}
+              />
+              <Building2 size={14} color="#42545B" />
+              <span>Campus & Building Geometry</span>
+            </label>
+
+            {/* 2. Access Point Locations & Status */}
+            <label className="flyout-layer-row">
+              <input
+                type="checkbox"
+                checked={visualLayers.accessPoints}
+                onChange={() => toggleLayer('accessPoints')}
+              />
+              <Radio size={14} color="#4A8BC7" />
+              <span>Access Point Locations & Hardware</span>
+            </label>
+
+            {/* 3. Wi-Fi Signal Coverage Heatmap */}
             <label className="flyout-layer-row">
               <input
                 type="checkbox"
                 checked={visualLayers.heatmap}
                 onChange={() => toggleLayer('heatmap')}
               />
-              <Eye size={14} color="#0284c7" />
-              <span>RF Signal Coverage Heatmap</span>
+              <Layers size={14} color="#287A50" />
+              <span>Calculated Wi-Fi RSSI Heatmap</span>
             </label>
 
-            {/* Coverage Radii */}
+            {/* 4. Connected Client Locations */}
             <label className="flyout-layer-row">
               <input
                 type="checkbox"
-                checked={visualLayers.coverageRings}
-                onChange={() => toggleLayer('coverageRings')}
+                checked={visualLayers.clients}
+                onChange={() => toggleLayer('clients')}
               />
-              <CircleDot size={14} color="#4f46e5" />
-              <span>AP Nominal Coverage Radii</span>
+              <Users size={14} color="#4A8BC7" />
+              <span>Client Device Locations</span>
             </label>
 
-            {/* Association Rays */}
+            {/* 5. Client-to-AP Association Links */}
             <label className="flyout-layer-row">
               <input
                 type="checkbox"
                 checked={visualLayers.associations}
                 onChange={() => toggleLayer('associations')}
               />
-              <GitBranch size={14} color="#15803d" />
-              <span>Client-to-AP Association Rays</span>
+              <GitBranch size={14} color="#8FC9BE" />
+              <span>802.11 Association Rays & Pulses</span>
             </label>
 
-            {/* Labels Decluttering */}
+            {/* 6. Congestion & Capacity Utilization */}
+            <label className="flyout-layer-row">
+              <input
+                type="checkbox"
+                checked={visualLayers.congestionZones}
+                onChange={() => toggleLayer('congestionZones')}
+              />
+              <AlertTriangle size={14} color="#E06D53" />
+              <span>Overload & Congestion Zones</span>
+            </label>
+
+            {/* 7. User Movement Trails */}
+            <label className="flyout-layer-row">
+              <input
+                type="checkbox"
+                checked={visualLayers.movementTrails}
+                onChange={() => toggleLayer('movementTrails')}
+              />
+              <Activity size={14} color="#287A50" />
+              <span>Pedestrian Mobility Trails</span>
+            </label>
+
+            {/* 8. Weak Coverage & Disconnected Warnings */}
+            <label className="flyout-layer-row">
+              <input
+                type="checkbox"
+                checked={visualLayers.coverageWarnings}
+                onChange={() => toggleLayer('coverageWarnings')}
+              />
+              <AlertCircle size={14} color="#E06D53" />
+              <span>Weak Coverage & Outage Warnings</span>
+            </label>
+
+            <div className="flyout-divider" />
+
+            {/* Additional Display Options */}
+            <label className="flyout-layer-row">
+              <input
+                type="checkbox"
+                checked={visualLayers.coverageRings}
+                onChange={() => toggleLayer('coverageRings')}
+              />
+              <CircleDot size={14} color="#C8DDF5" />
+              <span>Nominal AP Coverage Radii</span>
+            </label>
+
             <label className="flyout-layer-row">
               <input
                 type="checkbox"
                 checked={visualLayers.labels}
                 onChange={() => toggleLayer('labels')}
               />
-              <Tag size={14} color="#78716c" />
-              <span>Always Show Object Labels</span>
+              <Tag size={14} color="#64767A" />
+              <span>Always-Visible Object Labels</span>
             </label>
 
-            {/* Transparent Roofs */}
             <label className="flyout-layer-row">
               <input
                 type="checkbox"
                 checked={visualLayers.transparentRoofs}
                 onChange={() => toggleLayer('transparentRoofs')}
               />
-              <Building2 size={14} color="#d97706" />
-              <span>See-through Building Roofs</span>
+              <Eye size={14} color="#D87834" />
+              <span>See-through Roofs (Indoor View)</span>
             </label>
           </div>
         </div>

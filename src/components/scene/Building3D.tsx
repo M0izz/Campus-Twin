@@ -25,7 +25,33 @@ export const Building3D: React.FC<Building3DProps> = ({ building }) => {
   };
 
   // Palette A: Restrained architectural limestone & warm alabaster
-  const facadeColor = isSelected ? '#FFFFFF' : hovered ? '#FAF8F3' : '#F2EFE8';
+  const facadeColor = hovered ? '#FAF8F3' : '#F2EFE8';
+
+  // Coordinated Palette A Architectural Roofs (Deep slate, zinc, terracotta)
+  const roofColor = (() => {
+    const raw = building.roofColor;
+    if (
+      !raw ||
+      raw === '#2563eb' ||
+      raw === '#7c3aed' ||
+      raw === '#059669' ||
+      raw === '#16a34a' ||
+      raw === '#6366f1' ||
+      raw === '#334155'
+    ) {
+      switch (building.category) {
+        case 'academic':
+          return '#384850'; // deep architectural slate
+        case 'library':
+          return '#4A5C66'; // zinc slate with sky undertone
+        case 'student-hub':
+          return '#5C4D44'; // warm architectural terracotta/timber tone
+        default:
+          return '#45564F'; // muted architectural sage slate
+      }
+    }
+    return raw;
+  })();
 
   return (
     <group
@@ -87,17 +113,25 @@ export const Building3D: React.FC<Building3DProps> = ({ building }) => {
         );
       })}
 
-      {/* Roof Slab */}
+      {/* Architectural Roof Slab */}
       <mesh position={[0, dimensions.y + 0.12, 0]} castShadow>
-        <boxGeometry args={[dimensions.x + 0.4, 0.25, dimensions.z + 0.4]} />
+        <boxGeometry args={[dimensions.x + 0.3, 0.25, dimensions.z + 0.3]} />
         <meshStandardMaterial
-          color={building.roofColor || '#33434A'}
-          roughness={0.55}
-          metalness={0.1}
+          color={roofColor}
+          roughness={0.6}
+          metalness={0.08}
           transparent={transparentRoofs}
           opacity={transparentRoofs ? 0.25 : 1.0}
         />
       </mesh>
+
+      {/* Recessed Rooftop Gravel Inset (Warm Ivory #EFECE3) */}
+      {!transparentRoofs && (
+        <mesh position={[0, dimensions.y + 0.26, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[dimensions.x * 0.88, dimensions.z * 0.88]} />
+          <meshStandardMaterial color="#EFECE3" roughness={0.8} />
+        </mesh>
+      )}
 
       {/* Roof HVAC / Penthouse Infrastructure */}
       {!transparentRoofs && (

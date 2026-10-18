@@ -12,6 +12,7 @@ export const AccessPoint3D: React.FC<AccessPoint3DProps> = ({ accessPoint }) => 
   const selectedObject = useCampusStore((s) => s.selectedObject);
   const selectObject = useCampusStore((s) => s.selectObject);
   const showRings = useCampusStore((s) => s.visualLayers.coverageRings);
+  const showCongestionZones = useCampusStore((s) => s.visualLayers.congestionZones);
   const showLabels = useCampusStore((s) => s.visualLayers.labels);
   const apLoads = useCampusStore((s) => s.apLoads);
 
@@ -86,6 +87,20 @@ export const AccessPoint3D: React.FC<AccessPoint3DProps> = ({ accessPoint }) => 
               transparent
               opacity={isSelected ? 0.75 : 0.28}
             />
+          </mesh>
+        </group>
+      )}
+
+      {/* 6. Congestion and Capacity Utilization Zone Layer */}
+      {showCongestionZones && isOverloaded && accessPoint.status !== 'offline' && (
+        <group position={[0, -accessPoint.position.y + 0.045, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <mesh>
+            <circleGeometry args={[coverageRadiusMeters * 0.7, 32]} />
+            <meshBasicMaterial color="#E06D53" transparent opacity={0.16} depthWrite={false} />
+          </mesh>
+          <mesh>
+            <ringGeometry args={[coverageRadiusMeters * 0.68, coverageRadiusMeters * 0.7, 32]} />
+            <meshBasicMaterial color="#E06D53" transparent opacity={0.6} />
           </mesh>
         </group>
       )}

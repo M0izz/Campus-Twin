@@ -53,7 +53,7 @@ export const LandingPage: React.FC = () => {
           </div>
           <div className="landing-brand-text">
             <span className="brand-name">CampusTwin</span>
-            <span className="brand-badge font-mono">RF DIGITAL TWIN</span>
+            <span className="brand-badge">RF DIGITAL TWIN</span>
           </div>
         </div>
 
@@ -88,7 +88,7 @@ export const LandingPage: React.FC = () => {
         <div className="hero-content">
           <div className="hero-tag">
             <span className="tag-dot" />
-            <span className="font-mono">BOTANICAL TECHNOLOGY · SOFTWARE-ONLY RF TWIN</span>
+            <span>BOTANICAL TECHNOLOGY · SOFTWARE-ONLY RF TWIN</span>
           </div>
 
           <h1 className="hero-headline">
@@ -143,7 +143,7 @@ export const LandingPage: React.FC = () => {
                 <span className="pill-dot peach" />
                 <span className="pill-dot sage" />
               </div>
-              <span className="hero-preview-label font-mono">
+              <span className="hero-preview-label">
                 Interactive 3D Digital Twin • Drag to Orbit & Pan
               </span>
               <button className="btn-fullscreen-preview" onClick={handleOpenDemo}>
@@ -198,7 +198,7 @@ export const LandingPage: React.FC = () => {
       {/* 4. Technical Capabilities Grid */}
       <section id="capabilities" className="landing-section">
         <div className="section-header">
-          <span className="section-eyebrow font-mono">SCIENTIFIC FOUNDATIONS</span>
+          <span className="section-eyebrow">SCIENTIFIC FOUNDATIONS</span>
           <h2 className="section-title">Built on Transparent Wireless Physics</h2>
           <p className="section-lead">
             Visualizations in CampusTwin reflect deterministic mathematical models rather than
@@ -270,7 +270,7 @@ export const LandingPage: React.FC = () => {
       {/* 5. Network Topology & Packet Pulses Feature Section */}
       <section id="topology" className="landing-section bg-surface">
         <div className="section-header">
-          <span className="section-eyebrow font-mono">NETWORK TOPOLOGY & FLOW</span>
+          <span className="section-eyebrow">NETWORK TOPOLOGY & FLOW</span>
           <h2 className="section-title">Living 802.11 Association Graph</h2>
           <p className="section-lead">
             Inspect every wireless node, curved association path, and directional packet pulse in real
@@ -361,7 +361,7 @@ export const LandingPage: React.FC = () => {
       {/* 6. Four-Step Engineering Workflow */}
       <section id="workflow" className="landing-section">
         <div className="section-header">
-          <span className="section-eyebrow font-mono">END-TO-END WORKFLOW</span>
+          <span className="section-eyebrow">END-TO-END WORKFLOW</span>
           <h2 className="section-title">How CampusTwin Simulates Real Networks</h2>
           <p className="section-lead">
             From geographic coordinate selection to what-if hardware optimization in four distinct
@@ -411,7 +411,7 @@ export const LandingPage: React.FC = () => {
       {/* 7. Engineering & Privacy Reality Section */}
       <section id="privacy" className="landing-section bg-stone">
         <div className="section-header">
-          <span className="section-eyebrow font-mono">REAL-WORLD CONTEXT & PRIVACY</span>
+          <span className="section-eyebrow">REAL-WORLD CONTEXT & PRIVACY</span>
           <h2 className="section-title">Authentic Boundaries & Zero Device Tracking</h2>
           <p className="section-lead">
             CampusTwin bridges real geographic building footprints with an explicitly simulated

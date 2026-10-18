@@ -126,7 +126,7 @@ export const ScenarioComparisonModal: React.FC = () => {
             {/* Delivered Throughput */}
             <div className="metric-compare-card">
               <div className="metric-compare-header">
-                <TrendingUp size={16} color="#2563eb" />
+                <TrendingUp size={16} color="#287A50" />
                 <span>Delivered Bandwidth</span>
               </div>
               <div className="metric-compare-values">

@@ -16,10 +16,16 @@ import {
 export type SelectedObjectType = 'building' | 'accessPoint' | 'client' | null;
 
 export interface VisualLayers {
-  heatmap: boolean;
+  buildingGeometry: boolean; // 1. Campus and building geometry
+  accessPoints: boolean;     // 2. Access-point locations and status
+  heatmap: boolean;          // 3. Calculated Wi-Fi signal-strength heatmap
   heatmapMetric: 'rssi' | 'congestion';
+  clients: boolean;          // 4. Connected-client locations
+  associations: boolean;     // 5. Client-to-AP association links
+  congestionZones: boolean;  // 6. Congestion and capacity utilization
+  movementTrails: boolean;   // 7. User movement trails
+  coverageWarnings: boolean; // 8. Weak-coverage and disconnected-client warnings
   coverageRings: boolean;
-  associations: boolean;
   labels: boolean;
   transparentRoofs: boolean;
 }
@@ -123,11 +129,17 @@ export const useCampusStore = create<CampusStoreState>((set, get) => ({
   playbackSpeed: 1.0,
   currentTimeSeconds: 0,
   visualLayers: {
+    buildingGeometry: true,
+    accessPoints: true,
     heatmap: true,
     heatmapMetric: 'rssi',
-    coverageRings: true,
+    clients: true,
     associations: true,
-    labels: false, // Default decluttered: labels show on hover/select or high zoom!
+    congestionZones: true,
+    movementTrails: true,
+    coverageWarnings: true,
+    coverageRings: true,
+    labels: false, // Default decluttered: labels show on hover/select
     transparentRoofs: false,
   },
   apLoads: initialTickResult.apLoads,

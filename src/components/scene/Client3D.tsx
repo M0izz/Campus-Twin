@@ -17,6 +17,8 @@ export const Client3D: React.FC<Client3DProps> = ({ client }) => {
   const selectedObject = useCampusStore((s) => s.selectedObject);
   const selectObject = useCampusStore((s) => s.selectObject);
   const showAssociations = useCampusStore((s) => s.visualLayers.associations);
+  const showMovementTrails = useCampusStore((s) => s.visualLayers.movementTrails);
+  const showCoverageWarnings = useCampusStore((s) => s.visualLayers.coverageWarnings);
   const showLabels = useCampusStore((s) => s.visualLayers.labels);
   const accessPoints = useCampusStore((s) => s.scenario.accessPoints);
   const isAnimated = useCampusStore((s) => s.isTopologyAnimated);
@@ -123,15 +125,15 @@ export const Client3D: React.FC<Client3DProps> = ({ client }) => {
         </group>
       )}
 
-      {/* 4D Mobility Movement Trail (Waypoint Path when Selected) */}
-      {isSelected && client.waypoints && client.waypoints.length > 0 && (
+      {/* 7. User Movement Trails Layer (Waypoint Path) */}
+      {(showMovementTrails || isSelected) && client.waypoints && client.waypoints.length > 0 && (
         <group position={[-client.position.x, -client.position.y + 0.04, -client.position.z]}>
           {client.waypoints.map((wp, idx) => {
             const nextWp = client.waypoints![idx + 1];
             return (
               <group key={`wp-${idx}`}>
                 <mesh position={[wp.x, 0, wp.z]} rotation={[-Math.PI / 2, 0, 0]}>
-                  <circleGeometry args={[0.25, 12]} />
+                  <circleGeometry args={[0.22, 12]} />
                   <meshBasicMaterial color="#8FC9BE" />
                 </mesh>
                 {nextWp && (
@@ -142,13 +144,21 @@ export const Client3D: React.FC<Client3DProps> = ({ client }) => {
                         args={[new Float32Array([wp.x, 0, wp.z, nextWp.x, 0, nextWp.z]), 3]}
                       />
                     </bufferGeometry>
-                    <lineBasicMaterial color="#287A50" transparent opacity={0.6} />
+                    <lineBasicMaterial color="#287A50" transparent opacity={0.5} />
                   </line>
                 )}
               </group>
             );
           })}
         </group>
+      )}
+
+      {/* 8. Weak-Coverage and Disconnected-Client Warnings Layer */}
+      {showCoverageWarnings && (!client.connected || rssi < -78) && (
+        <mesh position={[0, -client.position.y + 0.045, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.45, 0.65, 20]} />
+          <meshBasicMaterial color="#E06D53" transparent opacity={0.55} />
+        </mesh>
       )}
 
       {/* Contextual Device Tag: ONLY shown on hover or when selected */}

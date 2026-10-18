@@ -343,7 +343,7 @@ export function generateCampusBuildings(campus: CampusLocation): Building[] {
       wallAttenuationDb: 12,
       category: 'library',
       color: '#f8fafc',
-      roofColor: '#2563eb', // subtle oxford blue
+      roofColor: '#4A5C66', // zinc architectural finish
     },
     {
       id: 'bldg-lecture',
@@ -355,7 +355,7 @@ export function generateCampusBuildings(campus: CampusLocation): Building[] {
       wallAttenuationDb: 15,
       category: 'academic',
       color: '#f1f5f9',
-      roofColor: '#6366f1',
+      roofColor: '#5C4D44', // warm terracotta/timber tone
     },
     {
       id: 'bldg-hub',
@@ -367,7 +367,7 @@ export function generateCampusBuildings(campus: CampusLocation): Building[] {
       wallAttenuationDb: 9,
       category: 'student-hub',
       color: '#f8fafc',
-      roofColor: '#16a34a', // restrained architectural green
+      roofColor: '#45564F', // muted architectural sage slate
     },
   ];
 }

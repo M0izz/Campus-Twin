@@ -74,7 +74,7 @@ export const ScenarioSchema = z.object({
   modelConfig: ModelConfigSchema,
 });
 
-const STORAGE_KEY = 'campustwin_active_scenario';
+const STORAGE_KEY = 'campustwin_active_scenario_v2';
 
 export function saveScenarioToLocalStorage(scenario: Scenario): boolean {
   try {

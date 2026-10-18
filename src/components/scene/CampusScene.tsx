@@ -113,6 +113,7 @@ export const CampusScene: React.FC = () => {
   const buildings = useCampusStore((s) => s.scenario.buildings);
   const accessPoints = useCampusStore((s) => s.scenario.accessPoints);
   const clients = useCampusStore((s) => s.scenario.clients);
+  const visualLayers = useCampusStore((s) => s.visualLayers);
   const selectObject = useCampusStore((s) => s.selectObject);
   const activeTool = useCampusStore((s) => s.activeTool);
   const addAccessPoint = useCampusStore((s) => s.addAccessPoint);
@@ -197,22 +198,25 @@ export const CampusScene: React.FC = () => {
 
         {/* 3D Scene Components */}
         <CampusGround />
-        <CoverageHeatmapMesh />
+        {visualLayers.heatmap && <CoverageHeatmapMesh />}
 
-        {/* 3D Buildings */}
-        {buildings.map((building) => (
-          <Building3D key={building.id} building={building} />
-        ))}
+        {/* 1. Campus & Building Geometry Layer */}
+        {visualLayers.buildingGeometry &&
+          buildings.map((building) => (
+            <Building3D key={building.id} building={building} />
+          ))}
 
-        {/* 3D Access Points */}
-        {accessPoints.map((ap) => (
-          <AccessPoint3D key={ap.id} accessPoint={ap} />
-        ))}
+        {/* 2. Access Points Layer */}
+        {visualLayers.accessPoints &&
+          accessPoints.map((ap) => (
+            <AccessPoint3D key={ap.id} accessPoint={ap} />
+          ))}
 
-        {/* 3D Roaming/Stationary Clients */}
-        {clients.map((client) => (
-          <Client3D key={client.id} client={client} />
-        ))}
+        {/* 4. Connected Clients Layer */}
+        {visualLayers.clients &&
+          clients.map((client) => (
+            <Client3D key={client.id} client={client} />
+          ))}
 
         {/* Dynamic Simulation Loop Driver */}
         <SimulationController />

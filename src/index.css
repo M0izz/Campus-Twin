@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..700;1,9..40,400..700&family=IBM+Plex+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+
 :root {
   /* =========================================================================
      Palette A — Botanical Technology
@@ -109,7 +111,15 @@ button, input, select, textarea {
   font-family: var(--font-sans);
 }
 
-/* Technical Metrics Monospace Class */
+/* Three-tier Typography Classes */
+.font-heading {
+  font-family: var(--font-heading) !important;
+}
+
+.font-sans {
+  font-family: var(--font-sans) !important;
+}
+
 .font-mono,
 .tech-metric,
 .telemetry-val,
@@ -118,6 +128,54 @@ button, input, select, textarea {
 .timestamp-text {
   font-family: var(--font-mono) !important;
   font-feature-settings: "tnum" 1, "zero" 1;
+}
+
+/* Palette A — Botanical Technology Font Color Classes */
+.text-sage { color: #5B8877 !important; }
+.text-seaglass { color: #3E8275 !important; }
+.text-lilac { color: #6D62A8 !important; }
+.text-peach { color: #B5653C !important; }
+.text-sky { color: #2C6FA8 !important; }
+.text-ivory { color: #F7F4ED !important; }
+.text-ink { color: #25343A !important; }
+.text-forest { color: #287A50 !important; }
+.text-coral { color: #E06D53 !important; }
+
+/* Font Badges & Pills Matching the 6 Palette A Swatches */
+.pill-sage {
+  background-color: #D7E9DF;
+  color: #19382C;
+  border: 1px solid #BFD9CC;
+}
+
+.pill-seaglass {
+  background-color: #8FC9BE;
+  color: #11362F;
+  border: 1px solid #77B6AA;
+}
+
+.pill-lilac {
+  background-color: #DAD5F2;
+  color: #27214E;
+  border: 1px solid #C4BDED;
+}
+
+.pill-peach {
+  background-color: #F3D8C8;
+  color: #4A2412;
+  border: 1px solid #E9C3AD;
+}
+
+.pill-sky {
+  background-color: #C8DDF5;
+  color: #133355;
+  border: 1px solid #B0CCED;
+}
+
+.pill-ivory {
+  background-color: #F7F4ED;
+  color: #25343A;
+  border: 1px solid #E6E1D6;
 }
 
 /* Technical Scrollbar */
