@@ -10,12 +10,49 @@ export const CoverageHeatmapMesh: React.FC = () => {
   const accessPoints = useCampusStore((s) => s.scenario.accessPoints);
   const buildings = useCampusStore((s) => s.scenario.buildings);
   const modelConfig = useCampusStore((s) => s.scenario.modelConfig);
+  const spatialBounds = useCampusStore((s) => s.scenario.spatialBounds);
 
-  // Grid dimensions
-  const gridWidth = 140;
-  const gridDepth = 120;
-  const segmentsX = 52;
-  const segmentsZ = 46;
+  // Derive grid dimensions and center from real campus geometry
+  const { gridWidth, gridDepth, centerX, centerZ } = useMemo(() => {
+    if (spatialBounds) {
+      return {
+        gridWidth: Math.max(120, spatialBounds.widthMeters),
+        gridDepth: Math.max(100, spatialBounds.depthMeters),
+        centerX: (spatialBounds.minX + spatialBounds.maxX) / 2,
+        centerZ: (spatialBounds.minZ + spatialBounds.maxZ) / 2,
+      };
+    }
+    // Calculate from buildings and APs if spatialBounds missing
+    if (buildings.length > 0 || accessPoints.length > 0) {
+      let minX = Infinity,
+        maxX = -Infinity,
+        minZ = Infinity,
+        maxZ = -Infinity;
+      buildings.forEach((b) => {
+        minX = Math.min(minX, b.position.x - b.dimensions.x / 2);
+        maxX = Math.max(maxX, b.position.x + b.dimensions.x / 2);
+        minZ = Math.min(minZ, b.position.z - b.dimensions.z / 2);
+        maxZ = Math.max(maxZ, b.position.z + b.dimensions.z / 2);
+      });
+      accessPoints.forEach((ap) => {
+        minX = Math.min(minX, ap.position.x - 30);
+        maxX = Math.max(maxX, ap.position.x + 30);
+        minZ = Math.min(minZ, ap.position.z - 30);
+        maxZ = Math.max(maxZ, ap.position.z + 30);
+      });
+      const pad = 20;
+      return {
+        gridWidth: Math.max(120, Math.round(maxX - minX + pad * 2)),
+        gridDepth: Math.max(100, Math.round(maxZ - minZ + pad * 2)),
+        centerX: Math.round((minX + maxX) / 2),
+        centerZ: Math.round((minZ + maxZ) / 2),
+      };
+    }
+    return { gridWidth: 140, gridDepth: 120, centerX: 0, centerZ: 0 };
+  }, [spatialBounds, buildings, accessPoints]);
+
+  const segmentsX = Math.min(64, Math.max(36, Math.round(gridWidth / 3.5)));
+  const segmentsZ = Math.min(60, Math.max(32, Math.round(gridDepth / 3.5)));
 
   const { geometry, hasCoverage } = useMemo(() => {
     const onlineAps = accessPoints.filter((ap) => ap.status !== 'offline');
@@ -33,7 +70,8 @@ export const CoverageHeatmapMesh: React.FC = () => {
     for (let i = 0; i < vertexCount; i++) {
       const vx = posAttr.getX(i);
       const vz = posAttr.getZ(i);
-      const point = { x: vx, y: 1.0, z: vz };
+      // Absolute world coordinate
+      const point = { x: vx + centerX, y: 1.0, z: vz + centerZ };
 
       // Find max RSSI among online APs
       let maxRssi = -120;
@@ -50,44 +88,50 @@ export const CoverageHeatmapMesh: React.FC = () => {
         }
       }
 
-      // Convert maxRssi to color:
-      // RSSI range: -85 (blue/cold) -> -75 (cyan) -> -65 (green) -> -55 (yellow) -> -45 (orange/red)
-      let r = 0, g = 0, b = 0, a = 0.5;
+      // Palette A RF spectrum mapping:
+      // Low signal: soft sky blue fade
+      // Fair signal: soft teal/sea glass
+      // Good signal: vibrant botanical emerald
+      // Peak signal: warm amber/peach peak
+      let r = 0,
+        g = 0,
+        b = 0,
+        a = 0.5;
 
       if (maxRssi <= -82) {
-        // Edge / Low coverage (cerulean blue fade)
-        r = 0.12;
-        g = 0.35;
-        b = 0.75;
-        a = Math.max(0.04, (maxRssi + 92) / 10 * 0.2);
+        // Edge / Low coverage (soft sky blue fade)
+        r = 0.2;
+        g = 0.45;
+        b = 0.85;
+        a = Math.max(0.04, ((maxRssi + 92) / 10) * 0.25);
       } else if (maxRssi <= -72) {
-        // Cyan / Teal
-        const t = (maxRssi - (-82)) / 10;
-        r = 0.05 + t * 0.08;
-        g = 0.55 + t * 0.35;
-        b = 0.85 - t * 0.3;
+        // Sea glass / Teal
+        const t = (maxRssi - -82) / 10;
+        r = 0.1 + t * 0.2;
+        g = 0.65 + t * 0.25;
+        b = 0.8 - t * 0.2;
         a = 0.35 + t * 0.15;
       } else if (maxRssi <= -62) {
-        // Emerald Green (Good service)
-        const t = (maxRssi - (-72)) / 10;
-        r = 0.15 + t * 0.65;
+        // Botanical Emerald (#287A50)
+        const t = (maxRssi - -72) / 10;
+        r = 0.15 + t * 0.6;
         g = 0.88;
         b = 0.35 - t * 0.25;
-        a = 0.5 + t * 0.1;
+        a = 0.5 + t * 0.15;
       } else if (maxRssi <= -50) {
-        // Golden Yellow (Strong service)
-        const t = (maxRssi - (-62)) / 12;
+        // Golden Yellow / Warm Amber
+        const t = (maxRssi - -62) / 12;
         r = 0.92 + t * 0.06;
         g = 0.82 - t * 0.35;
         b = 0.1;
-        a = 0.6 + t * 0.1;
+        a = 0.65 + t * 0.1;
       } else {
-        // Peak Orange / Red (Maximum direct line-of-sight)
-        const t = Math.min(1.0, (maxRssi - (-50)) / 15);
-        r = 0.98;
-        g = 0.42 - t * 0.2;
-        b = 0.1;
-        a = 0.7;
+        // Peak Warm Peach / Coral
+        const t = Math.min(1.0, (maxRssi - -50) / 15);
+        r = 0.96;
+        g = 0.48 - t * 0.15;
+        b = 0.15;
+        a = 0.75;
       }
 
       const cIdx = i * 4;
@@ -105,14 +149,14 @@ export const CoverageHeatmapMesh: React.FC = () => {
     geo.computeVertexNormals();
 
     return { geometry: geo, hasCoverage: true };
-  }, [accessPoints, buildings, modelConfig, gridWidth, gridDepth, segmentsX, segmentsZ]);
+  }, [accessPoints, buildings, modelConfig, gridWidth, gridDepth, segmentsX, segmentsZ, centerX, centerZ]);
 
   if (!showHeatmap || !geometry || !hasCoverage) {
     return null;
   }
 
   return (
-    <mesh geometry={geometry} receiveShadow>
+    <mesh position={[centerX, 0, centerZ]} geometry={geometry} receiveShadow>
       <meshStandardMaterial
         vertexColors
         transparent

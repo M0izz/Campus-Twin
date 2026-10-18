@@ -41,13 +41,51 @@ const CameraController: React.FC<{ controlsRef: React.RefObject<OrbitControlsImp
   const desiredTarget = useRef(new THREE.Vector3(0, 2, 0));
   const isTransitioning = useRef(false);
 
+  // Helper to compute optimal overview camera framing for any campus
+  const computeOverview = () => {
+    const { buildings, spatialBounds } = scenario;
+    if (buildings.length === 0) {
+      return {
+        target: new THREE.Vector3(0, 2, 0),
+        pos: new THREE.Vector3(52, 46, 62),
+        height2D: 110,
+      };
+    }
+
+    let minX = spatialBounds ? spatialBounds.minX : Infinity;
+    let maxX = spatialBounds ? spatialBounds.maxX : -Infinity;
+    let minZ = spatialBounds ? spatialBounds.minZ : Infinity;
+    let maxZ = spatialBounds ? spatialBounds.maxZ : -Infinity;
+
+    if (!spatialBounds) {
+      buildings.forEach((b) => {
+        minX = Math.min(minX, b.position.x - b.dimensions.x / 2);
+        maxX = Math.max(maxX, b.position.x + b.dimensions.x / 2);
+        minZ = Math.min(minZ, b.position.z - b.dimensions.z / 2);
+        maxZ = Math.max(maxZ, b.position.z + b.dimensions.z / 2);
+      });
+    }
+
+    const cX = (minX + maxX) / 2;
+    const cZ = (minZ + maxZ) / 2;
+    const span = Math.max(100, Math.max(maxX - minX, maxZ - minZ));
+    const dist = span * 0.95;
+
+    return {
+      target: new THREE.Vector3(cX, 4, cZ),
+      pos: new THREE.Vector3(cX + dist * 0.72, Math.max(48, dist * 0.58), cZ + dist * 0.82),
+      height2D: Math.max(110, span * 1.25),
+    };
+  };
+
   useEffect(() => {
     if (!controlsRef.current) return;
     const controls = controlsRef.current;
+    const overview = computeOverview();
 
     if (viewMode === '2d') {
-      desiredCamPos.current.set(0, 110, 0.01);
-      desiredTarget.current.set(0, 0, 0);
+      desiredCamPos.current.set(overview.target.x, overview.height2D, overview.target.z + 0.01);
+      desiredTarget.current.set(overview.target.x, 0, overview.target.z);
       controls.maxPolarAngle = 0.01;
       controls.minPolarAngle = 0;
       isTransitioning.current = true;
@@ -60,9 +98,9 @@ const CameraController: React.FC<{ controlsRef: React.RefObject<OrbitControlsImp
         if (b) {
           desiredTarget.current.set(b.position.x, b.dimensions.y * 0.4, b.position.z);
           desiredCamPos.current.set(
-            b.position.x + 28,
-            b.dimensions.y + 24,
-            b.position.z + 32
+            b.position.x + Math.max(24, b.dimensions.x * 1.1),
+            b.dimensions.y + 20,
+            b.position.z + Math.max(26, b.dimensions.z * 1.1)
           );
           isTransitioning.current = true;
         }
@@ -81,9 +119,9 @@ const CameraController: React.FC<{ controlsRef: React.RefObject<OrbitControlsImp
           isTransitioning.current = true;
         }
       } else {
-        // Return to campus overview
-        desiredCamPos.current.set(52, 46, 62);
-        desiredTarget.current.set(0, 2, 0);
+        // Return to dynamically calculated campus overview
+        desiredCamPos.current.copy(overview.pos);
+        desiredTarget.current.copy(overview.target);
         isTransitioning.current = true;
       }
     }

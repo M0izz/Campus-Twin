@@ -103,6 +103,25 @@
   border-color: var(--border-medium);
 }
 
+.campus-source-badge {
+  font-size: 9px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  padding: 1px 5px;
+  border-radius: 3px;
+  letter-spacing: 0.04em;
+}
+.campus-source-badge.osm {
+  background: var(--color-forest-subtle);
+  color: var(--color-forest);
+  border: 1px solid var(--color-seaglass);
+}
+.campus-source-badge.demo {
+  background: var(--bg-hover);
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
+}
+
 .campus-icon {
   color: var(--accent-action);
 }
@@ -1587,11 +1606,48 @@
 }
 
 .btn-continue, .btn-launch-final {
-  background: var(--accent-action);
+  background: var(--text-primary);
+  border: 1px solid var(--text-primary);
+  color: #F7F4ED;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+.btn-continue:hover, .btn-launch-final:hover {
+  background: #1A262A;
+}
+
+.btn-demo-mode {
+  background: #FFFFFF;
+  border: 1px solid var(--color-seaglass);
+  color: var(--text-primary);
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.btn-demo-mode:hover {
+  background: var(--color-seaglass-subtle);
+  border-color: var(--color-seaglass-hover);
+}
+
+.search-submit-btn {
+  background: var(--text-primary);
+  color: #F7F4ED;
   border: none;
-  color: #ffffff;
-  padding: 6px 14px;
   border-radius: 4px;
+  padding: 5px 12px;
   font-size: 11.5px;
   font-weight: 600;
   cursor: pointer;
@@ -1599,6 +1655,133 @@
   align-items: center;
   gap: 4px;
 }
+.search-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.coord-pill {
+  font-size: 9.5px;
+  color: var(--text-muted);
+  background: var(--bg-hover);
+  padding: 1px 5px;
+  border-radius: 3px;
+  margin-left: 6px;
+}
+
+.empty-results-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 20px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 12px;
+  gap: 10px;
+}
+
+.radius-adjust-box {
+  background: var(--bg-surface-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.radius-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.radius-buttons-row {
+  display: flex;
+  gap: 8px;
+}
+.btn-radius-pill {
+  flex: 1;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  color: var(--text-primary);
+  padding: 6px;
+  border-radius: 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.btn-radius-pill.active {
+  background: var(--color-sage);
+  border-color: var(--color-seaglass);
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.btn-fetch-osm {
+  background: var(--color-forest);
+  border: none;
+  color: #FFFFFF;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.btn-fetch-osm:hover:not(:disabled) {
+  background: var(--color-forest-hover);
+}
+.btn-fetch-osm:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.discovery-error-box {
+  background: var(--color-coral-subtle);
+  border: 1px solid var(--color-coral-border);
+  border-radius: 6px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--text-primary);
+}
+.discovery-error-box strong {
+  display: block;
+  color: var(--color-coral);
+  margin-bottom: 2px;
+}
+
+.osm-success-card {
+  background: var(--color-forest-subtle);
+  border: 1px solid var(--color-seaglass);
+  border-radius: 6px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12.5px;
+  color: var(--text-primary);
+}
+.osm-success-card strong {
+  color: var(--color-forest);
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.spin {
+  animation: spin 1s linear infinite;
+}
+
 
 /* Comparison Modal */
 .comparison-modal-content {

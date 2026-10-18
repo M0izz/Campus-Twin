@@ -21,6 +21,7 @@ export const TopologyModal: React.FC = () => {
   const isAnimated = useCampusStore((s) => s.isTopologyAnimated);
   const setAnimated = useCampusStore((s) => s.setTopologyAnimated);
   const filter = useCampusStore((s) => s.topologyFilter);
+  const setFilter = useCampusStore((s) => s.setTopologyFilter);
   const { accessPoints, clients, buildings } = scenario;
 
   // Filter APs and Clients based on user selection

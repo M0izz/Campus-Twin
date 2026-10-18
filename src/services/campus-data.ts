@@ -108,9 +108,12 @@ export function geoToCartesian(
   const deltaLat = lat - centerLat;
   const deltaLng = lng - centerLng;
 
+  const rawX = Math.round(deltaLng * metersPerLng);
+  const rawZ = -Math.round(deltaLat * metersPerLat);
+
   return {
-    x: Math.round(deltaLng * metersPerLng),
-    z: -Math.round(deltaLat * metersPerLat), // In Three.js: -Z is North
+    x: rawX === 0 ? 0 : rawX,
+    z: rawZ === 0 ? 0 : rawZ, // In Three.js: -Z is North
   };
 }
 

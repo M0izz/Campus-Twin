@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useCampusStore } from '../../store/useCampusStore';
-import { PRESET_UNIVERSITIES } from '../../services/campus-data';
 import {
   Wifi,
   Activity,
@@ -11,15 +10,12 @@ import {
   Save,
   Download,
   Check,
-  ChevronDown,
   Building,
 } from 'lucide-react';
 
 export const Header: React.FC = () => {
   const telemetry = useCampusStore((s) => s.telemetry);
   const scenario = useCampusStore((s) => s.scenario);
-  const activeLocation = useCampusStore((s) => s.activeLocation);
-  const setCampusLocation = useCampusStore((s) => s.setCampusLocation);
   const setView = useCampusStore((s) => s.setView);
   const openLocationModal = useCampusStore((s) => s.openLocationModal);
   const openComparisonModal = useCampusStore((s) => s.openComparisonModal);
@@ -27,7 +23,6 @@ export const Header: React.FC = () => {
   const exportCurrentScenario = useCampusStore((s) => s.exportCurrentScenario);
 
   const [savedNotice, setSavedNotice] = useState(false);
-  const [showCampusDropdown, setShowCampusDropdown] = useState(false);
 
   const onlineApCount = scenario.accessPoints.filter((a) => a.status === 'online').length;
 
@@ -57,38 +52,15 @@ export const Header: React.FC = () => {
         <div className="campus-selector-wrapper">
           <button
             className="campus-selector-trigger"
-            onClick={() => setShowCampusDropdown(!showCampusDropdown)}
+            onClick={openLocationModal}
+            title="Configure or Switch Campus Location"
           >
             <Building size={14} className="campus-icon" />
-            <span className="campus-title">{activeLocation.shortName}</span>
-            <ChevronDown size={13} className="chevron" />
+            <span className="campus-title">{scenario.name.split('—')[0].trim()}</span>
+            <span className={`campus-source-badge ${scenario.isDemo ? 'demo' : 'osm'}`}>
+              {scenario.isDemo ? 'DEMO' : 'OSM GIS'}
+            </span>
           </button>
-
-          {showCampusDropdown && (
-            <div className="campus-dropdown-menu" onClick={() => setShowCampusDropdown(false)}>
-              <div className="dropdown-label">SWITCH CAMPUS TWIN</div>
-              {PRESET_UNIVERSITIES.map((c) => (
-                <div
-                  key={c.id}
-                  className={`dropdown-item ${activeLocation.id === c.id ? 'active' : ''}`}
-                  onClick={() => setCampusLocation(c, true)}
-                >
-                  <div className="dropdown-item-title">{c.name}</div>
-                  <div className="dropdown-item-sub">{c.city}, {c.country}</div>
-                </div>
-              ))}
-              <div className="dropdown-divider" />
-              <div
-                className="dropdown-item action-item"
-                onClick={() => {
-                  setShowCampusDropdown(false);
-                  openLocationModal();
-                }}
-              >
-                + Discover New Campus (GPS / Search)...
-              </div>
-            </div>
-          )}
         </div>
       </div>
 

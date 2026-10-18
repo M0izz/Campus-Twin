@@ -8,6 +8,11 @@ export interface Wall {
   material: 'concrete' | 'drywall' | 'glass';
 }
 
+export interface BuildingPoint {
+  x: number;
+  z: number;
+}
+
 export interface Building {
   id: string;
   name: string;
@@ -20,6 +25,12 @@ export interface Building {
   color: string;
   roofColor: string;
   walls?: Wall[];
+  // Real geographic polygon footprint in local metric coordinates relative to position
+  footprint?: BuildingPoint[];
+  geoCoordinates?: Array<{ lat: number; lng: number }>;
+  heightSource?: 'osm' | 'estimated';
+  levelsSource?: 'osm' | 'estimated';
+  osmId?: string;
 }
 
 export interface AccessPoint {
@@ -65,6 +76,23 @@ export interface ModelConfig {
   wallDefaultAttenuationDb: number;
 }
 
+export interface CampusPathway {
+  id: string;
+  name?: string;
+  type: 'footway' | 'path' | 'road' | 'cycleway' | 'pedestrian';
+  points: BuildingPoint[];
+}
+
+export interface CampusSpatialBounds {
+  minX: number;
+  maxX: number;
+  minZ: number;
+  maxZ: number;
+  widthMeters: number;
+  depthMeters: number;
+  centerGeo: { lat: number; lng: number };
+}
+
 export interface Scenario {
   schemaVersion: number;
   id: string;
@@ -76,6 +104,11 @@ export interface Scenario {
   accessPoints: AccessPoint[];
   clients: Client[];
   modelConfig: ModelConfig;
+  spatialBounds?: CampusSpatialBounds;
+  pathways?: CampusPathway[];
+  geographicCenter?: { lat: number; lng: number };
+  attribution?: string;
+  isDemo?: boolean;
 }
 
 export interface SimulationTelemetry {

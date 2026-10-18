@@ -1,83 +1,160 @@
 import React, { useState } from 'react';
 import { useCampusStore } from '../../store/useCampusStore';
+import { DEFAULT_CAMPUS_SCENARIO } from '../../data/defaultCampus';
 import {
-  PRESET_UNIVERSITIES,
-  searchCampuses,
-  findNearestPresetCampus,
-  type CampusLocation,
-} from '../../services/campus-data';
+  discoverNearbyCampuses,
+  searchCampusesOnline,
+  fetchOsmCampusScenario,
+  type DiscoveredCampus,
+} from '../../services/osm-service';
+import type { Scenario } from '../../types/scenario';
 import {
   MapPin,
   Search,
   Navigation,
   CheckCircle,
   Building,
-  Layers,
   ArrowRight,
   Shield,
   X,
   Compass,
+  Loader2,
+  AlertCircle,
+  RefreshCw,
+  Sparkles,
 } from 'lucide-react';
 
 export const CampusDiscoveryModal: React.FC = () => {
   const showModal = useCampusStore((s) => s.showLocationModal);
   const closeModal = useCampusStore((s) => s.closeLocationModal);
-  const setCampusLocation = useCampusStore((s) => s.setCampusLocation);
+  const loadScenario = useCampusStore((s) => s.loadScenario);
+  const setView = useCampusStore((s) => s.setView);
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<CampusLocation[]>(PRESET_UNIVERSITIES);
-  const [selectedCampus, setSelectedCampus] = useState<CampusLocation>(PRESET_UNIVERSITIES[0]);
+  const [searchResults, setSearchResults] = useState<DiscoveredCampus[]>([]);
+  const [selectedCampus, setSelectedCampus] = useState<DiscoveredCampus | null>(null);
+
   const [isLocating, setIsLocating] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [isFetchingGeometry, setIsFetchingGeometry] = useState(false);
+
   const [locationStatus, setLocationStatus] = useState<string | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
+  const [radiusMeters, setRadiusMeters] = useState<number>(300);
   const [populateNetwork, setPopulateNetwork] = useState(true);
+  const [osmScenario, setOsmScenario] = useState<Scenario | null>(null);
 
   if (!showModal) return null;
 
-  const handleSearchChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    setSearchQuery(val);
-    const results = await searchCampuses(val);
-    setSearchResults(results);
-  };
-
+  // 1. Geolocation Flow: Discover real educational institutions near user's coordinates
   const handleBrowserGeolocation = () => {
     if (!navigator.geolocation) {
-      setLocationStatus('Geolocation is not supported by your browser. Please search manually.');
+      setLocationStatus('Geolocation is not supported by your browser. Please search by name.');
       return;
     }
 
     setIsLocating(true);
-    setLocationStatus('Requesting browser geolocation permission...');
+    setLocationStatus('Requesting browser location permission...');
+    setFetchError(null);
 
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setIsLocating(false);
+      async (pos) => {
         const { latitude, longitude } = pos.coords;
-        const nearest = findNearestPresetCampus(latitude, longitude);
-        setSelectedCampus(nearest);
-        setLocationStatus(`Located near: ${nearest.city}. Matched ${nearest.shortName}.`);
-        setStep(2);
+        setLocationStatus(`Found coordinates (${latitude.toFixed(4)}°, ${longitude.toFixed(4)}°). Querying nearby universities in OpenStreetMap...`);
+
+        const result = await discoverNearbyCampuses(latitude, longitude, 30);
+        setIsLocating(false);
+
+        if (result.success && result.campuses.length > 0) {
+          setSearchResults(result.campuses);
+          setSelectedCampus(result.campuses[0]);
+          setLocationStatus(`Found ${result.campuses.length} educational institutions near your location.`);
+        } else {
+          setLocationStatus(result.error || 'No universities found within 30km of your location. Please use the search bar below or try demo mode.');
+        }
       },
       (err) => {
         setIsLocating(false);
         if (err.code === err.PERMISSION_DENIED) {
-          setLocationStatus('Location access was denied. You can select your university below.');
+          setLocationStatus('Location permission was denied. You can search your university manually below.');
         } else {
-          setLocationStatus('Could not determine exact location. Please select from the list below.');
+          setLocationStatus('Could not acquire GPS position. Please search your university below.');
         }
       },
-      { timeout: 8000 }
+      { timeout: 10000, enableHighAccuracy: true }
     );
   };
 
-  const handleSelectCampus = (campus: CampusLocation) => {
+  // 2. Manual Search Flow
+  const handleSearchSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!searchQuery.trim() || searchQuery.trim().length < 2) return;
+
+    setIsSearching(true);
+    setFetchError(null);
+    setLocationStatus(null);
+
+    const results = await searchCampusesOnline(searchQuery);
+    setIsSearching(false);
+    setSearchResults(results);
+
+    if (results.length === 0) {
+      setLocationStatus(`No university campuses found matching "${searchQuery}". Try adding "University" or search for a major institution.`);
+    }
+  };
+
+  // 3. Selection of a candidate campus
+  const handleSelectCampus = (campus: DiscoveredCampus) => {
     setSelectedCampus(campus);
+    setFetchError(null);
+    setOsmScenario(null);
     setStep(2);
   };
 
+  // 4. Fetch real OSM building footprints for the confirmed campus
+  const handleFetchOsmFootprints = async () => {
+    if (!selectedCampus) return;
+
+    setIsFetchingGeometry(true);
+    setFetchError(null);
+
+    const res = await fetchOsmCampusScenario(selectedCampus, {
+      customRadiusMeters: radiusMeters,
+      maxBuildings: 60,
+    });
+
+    setIsFetchingGeometry(false);
+
+    if (res.success && res.scenario) {
+      setOsmScenario(res.scenario);
+      setStep(3);
+    } else {
+      setFetchError(res.error || 'Failed to retrieve building polygons from OpenStreetMap. Overpass API may be busy.');
+    }
+  };
+
+  // 5. Final launch into workspace
   const handleLaunchWorkspace = () => {
-    setCampusLocation(selectedCampus, populateNetwork);
+    if (osmScenario) {
+      // Apply user choice on whether to populate APs or start clean
+      const finalScenario: Scenario = {
+        ...osmScenario,
+        accessPoints: populateNetwork ? osmScenario.accessPoints : [],
+        clients: populateNetwork ? osmScenario.clients : [],
+      };
+      loadScenario(finalScenario);
+    }
+    setView('workspace');
+    closeModal();
+    setStep(1);
+  };
+
+  // 6. Direct Demo Mode Launch
+  const handleLaunchDemo = () => {
+    loadScenario(JSON.parse(JSON.stringify(DEFAULT_CAMPUS_SCENARIO)));
+    setView('workspace');
     closeModal();
     setStep(1);
   };
@@ -90,8 +167,8 @@ export const CampusDiscoveryModal: React.FC = () => {
           <div className="discovery-header-title">
             <Compass className="discovery-header-icon" size={22} />
             <div>
-              <h3>Campus Discovery & Setup</h3>
-              <p>Geospatial digital twin setup powered by OpenStreetMap</p>
+              <h3>Geographic Campus Setup</h3>
+              <p>Authentic OpenStreetMap building polygons & continuous RF simulation</p>
             </div>
           </div>
           <button className="discovery-close-btn" onClick={closeModal} title="Close setup">
@@ -103,31 +180,31 @@ export const CampusDiscoveryModal: React.FC = () => {
         <div className="discovery-stepper">
           <div className={`step-item ${step >= 1 ? 'active' : ''}`}>
             <span className="step-num">1</span>
-            <span>Location Discovery</span>
+            <span>Discovery</span>
           </div>
           <div className="step-line" />
           <div className={`step-item ${step >= 2 ? 'active' : ''}`}>
             <span className="step-num">2</span>
-            <span>Geospatial Confirmation</span>
+            <span>OSM Footprints</span>
           </div>
           <div className="step-line" />
           <div className={`step-item ${step === 3 ? 'active' : ''}`}>
             <span className="step-num">3</span>
-            <span>Network Population</span>
+            <span>Network Review</span>
           </div>
         </div>
 
-        {/* STEP 1: Search or Geolocation */}
+        {/* STEP 1: Discovery (Location or Search) */}
         {step === 1 && (
           <div className="discovery-content">
             <div className="permission-notice-box">
               <Shield size={18} className="text-emerald" />
               <div>
-                <strong>Why do we ask for location?</strong>
+                <strong>Privacy & Location Scope</strong>
                 <p>
-                  To discover your university boundaries and generate authentic 3D building
-                  footprints using OpenStreetMap GIS data. Your coordinates are processed locally
-                  and never stored.
+                  Geolocation searches for real educational boundaries through OpenStreetMap. It does
+                  not track devices or physical network telemetry. Coordinates are processed locally in
+                  your browser.
                 </p>
               </div>
             </div>
@@ -138,129 +215,172 @@ export const CampusDiscoveryModal: React.FC = () => {
                 onClick={handleBrowserGeolocation}
                 disabled={isLocating}
               >
-                <Navigation size={16} />
-                <span>{isLocating ? 'Acquiring GPS...' : 'Use My Current Location'}</span>
+                {isLocating ? <Loader2 size={16} className="spin" /> : <Navigation size={16} />}
+                <span>{isLocating ? 'Querying OpenStreetMap...' : 'Use My Current Location'}</span>
+              </button>
+
+              <button className="btn-demo-mode" onClick={handleLaunchDemo}>
+                <Sparkles size={15} color="#8FC9BE" />
+                <span>Launch Cambridge Demo</span>
               </button>
             </div>
 
             {locationStatus && <div className="discovery-status-text">{locationStatus}</div>}
 
-            <div className="discovery-search-box">
+            {/* Manual Search Input */}
+            <form onSubmit={handleSearchSubmit} className="discovery-search-box">
               <Search size={16} className="search-icon" />
               <input
                 type="text"
-                placeholder="Or search university by name, city, or state..."
+                placeholder="Or search any university (e.g., Stanford, MIT, Oxford, UNAM, IIT Bombay)..."
                 value={searchQuery}
-                onChange={handleSearchChange}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="search-input"
               />
-            </div>
+              <button type="submit" className="search-submit-btn" disabled={isSearching}>
+                {isSearching ? <Loader2 size={14} className="spin" /> : 'Search'}
+              </button>
+            </form>
 
+            {/* Candidate Campuses List */}
             <div className="campus-results-list">
-              {searchResults.map((campus) => (
-                <div
-                  key={campus.id}
-                  className="campus-result-card"
-                  onClick={() => handleSelectCampus(campus)}
-                >
-                  <div className="campus-result-left">
-                    <div className="campus-result-icon">
-                      <Building size={16} />
-                    </div>
-                    <div>
-                      <div className="campus-result-name">{campus.name}</div>
-                      <div className="campus-result-meta">
-                        {campus.city}, {campus.country} • {campus.buildingCount} Buildings •{' '}
-                        {campus.areaKm2} km²
+              {searchResults.length > 0 ? (
+                searchResults.map((campus) => (
+                  <div
+                    key={campus.id}
+                    className="campus-result-card"
+                    onClick={() => handleSelectCampus(campus)}
+                  >
+                    <div className="campus-result-left">
+                      <div className="campus-result-icon">
+                        <Building size={16} />
+                      </div>
+                      <div>
+                        <div className="campus-result-name">{campus.name}</div>
+                        <div className="campus-result-meta">
+                          {campus.city ? `${campus.city}, ` : ''}{campus.country}
+                          {campus.distanceKm !== undefined ? ` • ${campus.distanceKm} km away` : ''}
+                          <span className="coord-pill font-mono">
+                            {campus.coordinates.lat.toFixed(3)}°, {campus.coordinates.lng.toFixed(3)}°
+                          </span>
+                        </div>
                       </div>
                     </div>
+                    <button className="btn-select-campus">
+                      <span>Select</span>
+                      <ArrowRight size={14} />
+                    </button>
                   </div>
-                  <button className="btn-select-campus">
-                    <span>Select</span>
-                    <ArrowRight size={14} />
-                  </button>
+                ))
+              ) : (
+                <div className="empty-results-hint">
+                  <Compass size={28} color="#8E9FA4" />
+                  <p>Click "Use My Current Location" or type a university name above.</p>
                 </div>
-              ))}
+              )}
             </div>
           </div>
         )}
 
-        {/* STEP 2: Geospatial Confirmation */}
-        {step === 2 && (
+        {/* STEP 2: Geospatial Confirmation & Bounding Box Adjustment */}
+        {step === 2 && selectedCampus && (
           <div className="discovery-content">
             <div className="selected-campus-hero">
-              <div className="selected-badge">CONFIRMED CAMPUS BOUNDARY</div>
+              <div className="selected-badge">CONFIRMED OPENSTREETMAP LOCATION</div>
               <h2 className="selected-title">{selectedCampus.name}</h2>
               <div className="selected-coords">
                 <MapPin size={14} />
                 <span>
-                  {selectedCampus.coordinates.lat.toFixed(4)}° N,{' '}
-                  {selectedCampus.coordinates.lng.toFixed(4)}° E • {selectedCampus.city},{' '}
-                  {selectedCampus.country}
+                  {selectedCampus.coordinates.lat.toFixed(5)}° N, {selectedCampus.coordinates.lng.toFixed(5)}° E • {selectedCampus.city ? `${selectedCampus.city}, ` : ''}{selectedCampus.country}
                 </span>
               </div>
             </div>
 
             <div className="campus-specs-grid">
               <div className="spec-item">
-                <span className="spec-label">Footprint Source</span>
-                <span className="spec-val">OpenStreetMap (ODbL)</span>
-              </div>
-              <div className="spec-item">
-                <span className="spec-label">Building Entities</span>
-                <span className="spec-val">{selectedCampus.buildingCount} Structures</span>
-              </div>
-              <div className="spec-item">
-                <span className="spec-label">Geographic Area</span>
-                <span className="spec-val">{selectedCampus.areaKm2} km²</span>
+                <span className="spec-label">Data Provider</span>
+                <span className="spec-val">OpenStreetMap Overpass API</span>
               </div>
               <div className="spec-item">
                 <span className="spec-label">Attribution</span>
-                <span className="spec-val">{selectedCampus.attribution}</span>
+                <span className="spec-val">© OpenStreetMap contributors (ODbL)</span>
+              </div>
+              <div className="spec-item">
+                <span className="spec-label">Campus Radius</span>
+                <span className="spec-val">{radiusMeters} Meters</span>
+              </div>
+              <div className="spec-item">
+                <span className="spec-label">Coordinate System</span>
+                <span className="spec-val">Equirectangular Metric (Cartesian)</span>
               </div>
             </div>
 
-            <div className="building-preview-section">
-              <div className="section-heading">
-                <Layers size={14} />
-                <span>Extruded 3D Campus Structures</span>
+            {/* Radius adjustment control */}
+            <div className="radius-adjust-box">
+              <label className="radius-label">
+                <span>Capture Extent Radius:</span>
+                <strong>{radiusMeters}m ({radiusMeters * 2}m × {radiusMeters * 2}m sector)</strong>
+              </label>
+              <div className="radius-buttons-row">
+                {[200, 300, 450, 600].map((r) => (
+                  <button
+                    key={r}
+                    type="button"
+                    className={`btn-radius-pill ${radiusMeters === r ? 'active' : ''}`}
+                    onClick={() => setRadiusMeters(r)}
+                  >
+                    {r}m
+                  </button>
+                ))}
               </div>
-              <div className="building-preview-tags">
-                <span className="preview-tag">Academic Engineering Quad</span>
-                <span className="preview-tag">Science & Research Library</span>
-                <span className="preview-tag">Lecture Hall & Auditorium</span>
-                <span className="preview-tag">Student Commons Pavilion</span>
-              </div>
-              <p className="notice-subtext">
-                Height and partition walls are calibrated using standard academic building
-                materials. You can modify floor counts and wall attenuation in the 3D editor.
-              </p>
             </div>
+
+            {fetchError && (
+              <div className="discovery-error-box">
+                <AlertCircle size={18} color="#E06D53" />
+                <div>
+                  <strong>Geometry Fetch Notice</strong>
+                  <p>{fetchError}</p>
+                </div>
+              </div>
+            )}
 
             <div className="discovery-nav-footer">
-              <button className="btn-back" onClick={() => setStep(1)}>
+              <button className="btn-back" onClick={() => setStep(1)} disabled={isFetchingGeometry}>
                 Back to Search
               </button>
-              <button className="btn-continue" onClick={() => setStep(3)}>
-                Configure Network
-                <ArrowRight size={15} />
+              <button
+                className="btn-fetch-osm"
+                onClick={handleFetchOsmFootprints}
+                disabled={isFetchingGeometry}
+              >
+                {isFetchingGeometry ? (
+                  <>
+                    <Loader2 size={16} className="spin" />
+                    <span>Querying Overpass API...</span>
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw size={15} />
+                    <span>Fetch Real OSM Footprints</span>
+                    <ArrowRight size={15} />
+                  </>
+                )}
               </button>
             </div>
           </div>
         )}
 
-        {/* STEP 3: Network Population */}
-        {step === 3 && (
+        {/* STEP 3: Footprint Summary & Network Deployment */}
+        {step === 3 && osmScenario && (
           <div className="discovery-content">
-            <div className="privacy-card">
-              <Shield size={20} className="text-emerald" />
+            <div className="osm-success-card">
+              <CheckCircle size={22} color="#287A50" />
               <div>
-                <strong>Important Technical & Privacy Boundary</strong>
+                <strong>OpenStreetMap Geometry Extruded Successfully</strong>
                 <p>
-                  Browser geolocation locates only the consenting user, not campus Wi-Fi hardware or
-                  individual student devices. Access points, signal coverage, and student movements
-                  are simulated models based on IEEE standards unless authorized enterprise
-                  telemetry is imported.
+                  Retrieved <strong>{osmScenario.buildings.length} authentic building polygons</strong> and{' '}
+                  <strong>{osmScenario.pathways?.length || 0} pedestrian pathways</strong>.
                 </p>
               </div>
             </div>
@@ -277,10 +397,10 @@ export const CampusDiscoveryModal: React.FC = () => {
                   onChange={() => setPopulateNetwork(true)}
                 />
                 <div className="option-text">
-                  <strong>Simulate Enterprise Wi-Fi 6 Deployment</strong>
+                  <strong>Simulate Wi-Fi 6 APs & Student Movement</strong>
                   <p>
-                    Deploys high-density enterprise APs (Cisco Catalyst / Aruba AP-555) with
-                    simulated student roaming routes across faculties and outdoor quads.
+                    Automatically distributes 802.11ax/be enterprise access points inside the real
+                    buildings and creates student walking paths along OpenStreetMap walkways.
                   </p>
                 </div>
               </label>
@@ -296,10 +416,10 @@ export const CampusDiscoveryModal: React.FC = () => {
                   onChange={() => setPopulateNetwork(false)}
                 />
                 <div className="option-text">
-                  <strong>Start with Clean Architectural Campus</strong>
+                  <strong>Clean Architectural Campus (No Default APs)</strong>
                   <p>
-                    Loads the campus structures without APs. Use the 3D placement tool to design
-                    your wireless network from scratch.
+                    Loads only the real geographic building geometry. Deploy simulated APs manually
+                    from the engineering toolbar.
                   </p>
                 </div>
               </label>
@@ -307,11 +427,11 @@ export const CampusDiscoveryModal: React.FC = () => {
 
             <div className="discovery-nav-footer">
               <button className="btn-back" onClick={() => setStep(2)}>
-                Back
+                Adjust Radius
               </button>
               <button className="btn-launch-final" onClick={handleLaunchWorkspace}>
                 <CheckCircle size={16} />
-                <span>Launch 3D Digital Twin</span>
+                <span>Launch 3D Engineering Workspace</span>
               </button>
             </div>
           </div>

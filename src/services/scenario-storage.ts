@@ -8,6 +8,11 @@ export const Vec3Schema = z.object({
   z: z.number(),
 });
 
+export const BuildingPointSchema = z.object({
+  x: z.number(),
+  z: z.number(),
+});
+
 export const BuildingSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
@@ -19,6 +24,11 @@ export const BuildingSchema = z.object({
   category: z.enum(['academic', 'library', 'student-hub', 'amenity', 'outdoor']),
   color: z.string(),
   roofColor: z.string(),
+  footprint: z.array(BuildingPointSchema).optional(),
+  geoCoordinates: z.array(z.object({ lat: z.number(), lng: z.number() })).optional(),
+  heightSource: z.enum(['osm', 'estimated']).optional(),
+  levelsSource: z.enum(['osm', 'estimated']).optional(),
+  osmId: z.string().optional(),
 });
 
 export const AccessPointSchema = z.object({
@@ -72,6 +82,30 @@ export const ScenarioSchema = z.object({
   accessPoints: z.array(AccessPointSchema),
   clients: z.array(ClientSchema),
   modelConfig: ModelConfigSchema,
+  spatialBounds: z
+    .object({
+      minX: z.number(),
+      maxX: z.number(),
+      minZ: z.number(),
+      maxZ: z.number(),
+      widthMeters: z.number(),
+      depthMeters: z.number(),
+      centerGeo: z.object({ lat: z.number(), lng: z.number() }),
+    })
+    .optional(),
+  pathways: z
+    .array(
+      z.object({
+        id: z.string(),
+        name: z.string().optional(),
+        type: z.enum(['footway', 'path', 'road', 'cycleway', 'pedestrian']),
+        points: z.array(BuildingPointSchema),
+      })
+    )
+    .optional(),
+  geographicCenter: z.object({ lat: z.number(), lng: z.number() }).optional(),
+  attribution: z.string().optional(),
+  isDemo: z.boolean().optional(),
 });
 
 const STORAGE_KEY = 'campustwin_active_scenario_v2';
