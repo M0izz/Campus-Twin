@@ -1,0 +1,149 @@
+:root {
+  /* =========================================================================
+     Palette A — Botanical Technology
+     Warm ivory, deep ink, soft sage, sea glass, lilac, peach, sky blue, forest
+     ========================================================================= */
+
+  /* Surface & Canvas Bases */
+  --bg-app: #F7F4ED;            /* Warm ivory application base */
+  --bg-canvas: #F7F4ED;         /* Cartographic 3D ground canvas base */
+  --bg-surface: #FFFFFF;        /* Crisp white container surface */
+  --bg-surface-subtle: #FAF8F3; /* Subtle card/nested surface */
+  --bg-hover: #EFECE3;          /* Warm interactive hover */
+  --bg-active: #E4E0D5;
+
+  /* Typography Colors */
+  --text-primary: #25343A;      /* Deep ink for primary headers & high-contrast body */
+  --text-secondary: #42545B;    /* Medium deep ink for readable subheadings */
+  --text-muted: #64767A;        /* Muted slate for units, secondary labels */
+  --text-subtle: #8E9FA4;       /* Subtle decorative guides */
+  --text-inverse: #FFFFFF;
+
+  /* Botanical Semantic Color System */
+  --color-sage: #D7E9DF;        /* Soft sage: healthy network states, soft tool tags */
+  --color-sage-subtle: #F1F7F4;
+  --color-seaglass: #8FC9BE;    /* Sea glass: selected tools, active borders, accents */
+  --color-seaglass-hover: #77B4A8;
+  --color-seaglass-subtle: #EFF8F6;
+  --color-lilac: #DAD5F2;       /* Soft lilac: topology links, secondary visualization */
+  --color-lilac-subtle: #F4F2FB;
+  --color-peach: #F3D8C8;       /* Warm peach: warnings, hover elevation, soft alert */
+  --color-peach-subtle: #FCF4EE;
+  --color-sky: #C8DDF5;         /* Sky blue: AP markers, wireless links */
+  --color-sky-subtle: #F0F6FD;
+  --color-forest: #287A50;      /* Forest green: primary CTA actions, optimal states */
+  --color-forest-hover: #1E5E3D;
+  --color-forest-subtle: #EDF7F1;
+  --color-coral: #E06D53;       /* Muted coral: warnings, degraded states, AP overload */
+  --color-coral-subtle: #FDF2EF;
+  --color-coral-border: #F5B9AB;
+
+  /* Hairline Borders */
+  --border-subtle: #E6E1D6;     /* Precision hairline border */
+  --border-medium: #D3CDC0;
+  --border-focus: #8FC9BE;      /* Sea glass focus ring */
+
+  /* Semantic Action Aliases */
+  --accent-action: #287A50;
+  --accent-action-hover: #1E5E3D;
+  --accent-action-subtle: #EDF7F1;
+  --accent-action-border: #8FC9BE;
+
+  --accent-rf: #4A8BC7;
+  --accent-rf-subtle: #F0F6FD;
+  --accent-rf-border: #C8DDF5;
+
+  --accent-warn: #D87834;
+  --accent-danger: #E06D53;
+
+  /* Typography System */
+  --font-heading: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Scientific Wi-Fi Signal Scale (Independent of decorative UI palette) */
+  --rf-poor: #313695;      /* -85 dBm: Deep cobalt */
+  --rf-weak: #4575b4;      /* -75 dBm: Steel blue */
+  --rf-fair: #74add1;      /* -65 dBm: Sky cyan */
+  --rf-good: #abd9e9;      /* -55 dBm: Pale ice blue */
+  --rf-great: #fee090;     /* -50 dBm: Amber glow */
+  --rf-excellent: #d73027; /* -45 dBm: High SNR peak */
+
+  /* Elevation Shadows */
+  --shadow-sm: 0 1px 2px rgba(37, 52, 58, 0.04);
+  --shadow-md: 0 4px 12px rgba(37, 52, 58, 0.06);
+  --shadow-lg: 0 12px 32px rgba(37, 52, 58, 0.09);
+  --shadow-focus: 0 0 0 3px rgba(143, 201, 190, 0.35);
+
+  /* Transitions & Motion */
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 140ms;
+  --duration-normal: 240ms;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  color: var(--text-primary);
+  letter-spacing: -0.015em;
+  font-weight: 700;
+}
+
+button, input, select, textarea {
+  font-family: var(--font-sans);
+}
+
+/* Technical Metrics Monospace Class */
+.font-mono,
+.tech-metric,
+.telemetry-val,
+.rf-badge,
+.scale-text,
+.timestamp-text {
+  font-family: var(--font-mono) !important;
+  font-feature-settings: "tnum" 1, "zero" 1;
+}
+
+/* Technical Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-medium);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Reduced Motion Override */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
