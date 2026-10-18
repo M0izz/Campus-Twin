@@ -29,32 +29,82 @@ const SimulationController: React.FC = () => {
   return null;
 };
 
-// Camera Controller for 2D Plan vs 3D Oblique transitions
+// Camera Controller for Smooth Architectural Camera Transitions
 const CameraController: React.FC<{ controlsRef: React.RefObject<OrbitControlsImpl | null> }> = ({
   controlsRef,
 }) => {
   const viewMode = useCampusStore((s) => s.viewMode);
+  const selectedObject = useCampusStore((s) => s.selectedObject);
+  const scenario = useCampusStore((s) => s.scenario);
+
+  const desiredCamPos = useRef(new THREE.Vector3(52, 46, 62));
+  const desiredTarget = useRef(new THREE.Vector3(0, 2, 0));
+  const isTransitioning = useRef(false);
 
   useEffect(() => {
     if (!controlsRef.current) return;
     const controls = controlsRef.current;
 
     if (viewMode === '2d') {
-      // 2D Top-Down Plan view
-      controls.object.position.set(0, 110, 0.01);
-      controls.target.set(0, 0, 0);
+      desiredCamPos.current.set(0, 110, 0.01);
+      desiredTarget.current.set(0, 0, 0);
       controls.maxPolarAngle = 0.01;
       controls.minPolarAngle = 0;
-      controls.update();
+      isTransitioning.current = true;
     } else {
-      // 3D Oblique Isometric view
-      controls.object.position.set(52, 46, 62);
-      controls.target.set(0, 2, 0);
       controls.maxPolarAngle = Math.PI / 2.08;
       controls.minPolarAngle = 0.1;
-      controls.update();
+
+      if (selectedObject.type === 'building' && selectedObject.id) {
+        const b = scenario.buildings.find((item) => item.id === selectedObject.id);
+        if (b) {
+          desiredTarget.current.set(b.position.x, b.dimensions.y * 0.4, b.position.z);
+          desiredCamPos.current.set(
+            b.position.x + 28,
+            b.dimensions.y + 24,
+            b.position.z + 32
+          );
+          isTransitioning.current = true;
+        }
+      } else if (selectedObject.type === 'accessPoint' && selectedObject.id) {
+        const ap = scenario.accessPoints.find((item) => item.id === selectedObject.id);
+        if (ap) {
+          desiredTarget.current.set(ap.position.x, ap.position.y, ap.position.z);
+          desiredCamPos.current.set(ap.position.x + 18, ap.position.y + 14, ap.position.z + 20);
+          isTransitioning.current = true;
+        }
+      } else if (selectedObject.type === 'client' && selectedObject.id) {
+        const cl = scenario.clients.find((item) => item.id === selectedObject.id);
+        if (cl) {
+          desiredTarget.current.set(cl.position.x, cl.position.y, cl.position.z);
+          desiredCamPos.current.set(cl.position.x + 16, cl.position.y + 12, cl.position.z + 18);
+          isTransitioning.current = true;
+        }
+      } else {
+        // Return to campus overview
+        desiredCamPos.current.set(52, 46, 62);
+        desiredTarget.current.set(0, 2, 0);
+        isTransitioning.current = true;
+      }
     }
-  }, [viewMode, controlsRef]);
+  }, [viewMode, selectedObject, scenario, controlsRef]);
+
+  useFrame(() => {
+    if (!controlsRef.current || !isTransitioning.current) return;
+    const controls = controlsRef.current;
+
+    controls.target.lerp(desiredTarget.current, 0.07);
+    controls.object.position.lerp(desiredCamPos.current, 0.07);
+    controls.update();
+
+    // End transition when close enough
+    if (
+      controls.target.distanceTo(desiredTarget.current) < 0.05 &&
+      controls.object.position.distanceTo(desiredCamPos.current) < 0.05
+    ) {
+      isTransitioning.current = false;
+    }
+  });
 
   return null;
 };

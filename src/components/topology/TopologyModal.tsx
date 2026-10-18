@@ -298,6 +298,27 @@ export const TopologyModal: React.FC = () => {
                     <circle r="22" fill="none" stroke="#8FC9BE" strokeWidth="3" opacity="0.8" />
                   )}
 
+                  {/* Concentric RF broadcast waves (Botanical style matching design spec) */}
+                  {!isOffline && (
+                    <>
+                      <path
+                        d="M -7 -14 A 9 9 0 0 1 7 -14"
+                        fill="none"
+                        stroke={isOverloaded ? '#E06D53' : '#8FC9BE'}
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                      />
+                      <path
+                        d="M -11 -18 A 14 14 0 0 1 11 -18"
+                        fill="none"
+                        stroke={isOverloaded ? '#E06D53' : '#8FC9BE'}
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        opacity="0.6"
+                      />
+                    </>
+                  )}
+
                   {/* Main AP Node Circle */}
                   <circle
                     r="16"

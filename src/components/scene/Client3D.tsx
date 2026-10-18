@@ -123,6 +123,34 @@ export const Client3D: React.FC<Client3DProps> = ({ client }) => {
         </group>
       )}
 
+      {/* 4D Mobility Movement Trail (Waypoint Path when Selected) */}
+      {isSelected && client.waypoints && client.waypoints.length > 0 && (
+        <group position={[-client.position.x, -client.position.y + 0.04, -client.position.z]}>
+          {client.waypoints.map((wp, idx) => {
+            const nextWp = client.waypoints![idx + 1];
+            return (
+              <group key={`wp-${idx}`}>
+                <mesh position={[wp.x, 0, wp.z]} rotation={[-Math.PI / 2, 0, 0]}>
+                  <circleGeometry args={[0.25, 12]} />
+                  <meshBasicMaterial color="#8FC9BE" />
+                </mesh>
+                {nextWp && (
+                  <line>
+                    <bufferGeometry>
+                      <bufferAttribute
+                        attach="attributes-position"
+                        args={[new Float32Array([wp.x, 0, wp.z, nextWp.x, 0, nextWp.z]), 3]}
+                      />
+                    </bufferGeometry>
+                    <lineBasicMaterial color="#287A50" transparent opacity={0.6} />
+                  </line>
+                )}
+              </group>
+            );
+          })}
+        </group>
+      )}
+
       {/* Contextual Device Tag: ONLY shown on hover or when selected */}
       {(showLabels || hovered || isSelected) && (
         <Html
