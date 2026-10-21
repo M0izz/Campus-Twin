@@ -25,11 +25,11 @@ export const Building3D: React.FC<Building3DProps> = ({ building }) => {
     selectObject('building', building.id);
   };
 
-  // Palette A: Restrained architectural limestone & warm alabaster
-  const facadeColor = isSelected ? '#FFFFFF' : hovered ? '#FAF8F3' : '#F2EFE8';
+  // Restrained architectural limestone & warm alabaster
+  const facadeColor = isSelected ? '#FFFFFF' : hovered ? '#FAF8F3' : building.color || '#F2EFE8';
 
-  // Coordinated Palette A Architectural Roofs (Deep slate, zinc, terracotta)
-  const roofColor = (() => {
+  // Coordinated Architectural Roofs (Deep slate, zinc, terracotta)
+  const roofColor = useMemo(() => {
     const raw = building.roofColor;
     if (
       !raw ||
@@ -52,7 +52,7 @@ export const Building3D: React.FC<Building3DProps> = ({ building }) => {
       }
     }
     return raw;
-  })();
+  }, [building.roofColor, building.category]);
 
   // Construct 2D polygonal footprint shape if available from OpenStreetMap
   const polygonShape = useMemo(() => {
@@ -66,7 +66,6 @@ export const Building3D: React.FC<Building3DProps> = ({ building }) => {
     return shape;
   }, [footprint]);
 
-  // Extrude settings for polygonal buildings
   const extrudeSettings = useMemo(
     () => ({
       depth: dimensions.y,
@@ -74,6 +73,10 @@ export const Building3D: React.FC<Building3DProps> = ({ building }) => {
     }),
     [dimensions.y]
   );
+
+  const hasSolar = building.category === 'academic' && dimensions.x >= 28;
+  const hasSpire = building.id.includes('shannon') || building.id.includes('chancellor') || building.id.includes('admin');
+  const hasDome = building.id.includes('hawking') || building.id.includes('conservatory');
 
   return (
     <group
@@ -88,15 +91,15 @@ export const Building3D: React.FC<Building3DProps> = ({ building }) => {
       {/* Ground Footprint Selection Accent in Sea Glass #8FC9BE */}
       {isSelected && (
         <mesh position={[0, 0.04, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[dimensions.x + 2.0, dimensions.z + 2.0]} />
+          <planeGeometry args={[dimensions.x + 2.4, dimensions.z + 2.4]} />
           <meshBasicMaterial color="#8FC9BE" transparent opacity={0.45} />
         </mesh>
       )}
 
-      {/* Building Body: Polygonal Extrusion or Rectangular Massing */}
+      {/* Building Body: Polygonal Extrusion or Rich Rectangular Architectural Massing */}
       {polygonShape ? (
         <group>
-          {/* Extruded polygonal massing (rotated so Y is up) */}
+          {/* Extruded polygonal massing */}
           <mesh
             position={[0, 0, 0]}
             rotation={[-Math.PI / 2, 0, 0]}
@@ -128,8 +131,15 @@ export const Building3D: React.FC<Building3DProps> = ({ building }) => {
           </mesh>
         </group>
       ) : (
-        /* Fallback: Rectangular Architectural Box with Window Glazing */
+        /* Rich Multi-tier Architectural Massing with All-side Glazing & Entrance Portal */
         <group>
+          {/* Ground Foundation Plinth Step */}
+          <mesh position={[0, 0.1, 0]} castShadow receiveShadow>
+            <boxGeometry args={[dimensions.x + 0.6, 0.2, dimensions.z + 0.6]} />
+            <meshStandardMaterial color="#475569" roughness={0.7} />
+          </mesh>
+
+          {/* Main Facade Massing */}
           <mesh position={[0, halfY, 0]} castShadow receiveShadow>
             <boxGeometry args={[dimensions.x, dimensions.y, dimensions.z]} />
             <meshStandardMaterial
@@ -139,42 +149,101 @@ export const Building3D: React.FC<Building3DProps> = ({ building }) => {
             />
           </mesh>
 
-          {/* Recessed Window Ribbon Glazing per Floor */}
+          {/* Recessed Window Ribbon Glazing on ALL 4 Facades (Front, Back, Left, Right) */}
           {Array.from({ length: building.floors }).map((_, fIdx) => {
             const floorHeight = dimensions.y / building.floors;
             const yPos = floorHeight * (fIdx + 0.5);
             return (
-              <group key={fIdx} position={[0, yPos, 0]}>
+              <group key={`floor-${fIdx}`} position={[0, yPos, 0]}>
+                {/* Front Windows (+Z) */}
                 <mesh position={[0, 0, dimensions.z / 2 + 0.015]}>
-                  <planeGeometry args={[dimensions.x * 0.9, floorHeight * 0.42]} />
+                  <planeGeometry args={[dimensions.x * 0.88, floorHeight * 0.45]} />
                   <meshStandardMaterial
-                    color="#42545B"
-                    roughness={0.15}
-                    metalness={0.5}
+                    color="#334155"
+                    roughness={0.12}
+                    metalness={0.6}
                     transparent
-                    opacity={0.85}
+                    opacity={0.88}
                   />
                 </mesh>
+                {/* Back Windows (-Z) */}
                 <mesh
                   position={[0, 0, -dimensions.z / 2 - 0.015]}
                   rotation={[0, Math.PI, 0]}
                 >
-                  <planeGeometry args={[dimensions.x * 0.9, floorHeight * 0.42]} />
+                  <planeGeometry args={[dimensions.x * 0.88, floorHeight * 0.45]} />
                   <meshStandardMaterial
-                    color="#42545B"
-                    roughness={0.15}
-                    metalness={0.5}
+                    color="#334155"
+                    roughness={0.12}
+                    metalness={0.6}
                     transparent
-                    opacity={0.85}
+                    opacity={0.88}
+                  />
+                </mesh>
+                {/* Left Windows (-X) */}
+                <mesh
+                  position={[-dimensions.x / 2 - 0.015, 0, 0]}
+                  rotation={[0, -Math.PI / 2, 0]}
+                >
+                  <planeGeometry args={[dimensions.z * 0.84, floorHeight * 0.45]} />
+                  <meshStandardMaterial
+                    color="#334155"
+                    roughness={0.12}
+                    metalness={0.6}
+                    transparent
+                    opacity={0.88}
+                  />
+                </mesh>
+                {/* Right Windows (+X) */}
+                <mesh
+                  position={[dimensions.x / 2 + 0.015, 0, 0]}
+                  rotation={[0, Math.PI / 2, 0]}
+                >
+                  <planeGeometry args={[dimensions.z * 0.84, floorHeight * 0.45]} />
+                  <meshStandardMaterial
+                    color="#334155"
+                    roughness={0.12}
+                    metalness={0.6}
+                    transparent
+                    opacity={0.88}
                   />
                 </mesh>
               </group>
             );
           })}
 
-          {/* Architectural Roof Slab */}
+          {/* Architectural Entrance Portal / Glass Canopy */}
+          <group position={[0, 0, dimensions.z / 2]}>
+            {/* Extended Glass Canopy */}
+            <mesh position={[0, 2.6, 1.4]} castShadow>
+              <boxGeometry args={[dimensions.x * 0.32, 0.12, 2.8]} />
+              <meshStandardMaterial color="#1E293B" metalness={0.7} roughness={0.3} />
+            </mesh>
+            {/* Entrance Support Pillars */}
+            <mesh position={[-dimensions.x * 0.14, 1.3, 2.6]} castShadow>
+              <cylinderGeometry args={[0.08, 0.08, 2.6, 8]} />
+              <meshStandardMaterial color="#475569" metalness={0.8} />
+            </mesh>
+            <mesh position={[dimensions.x * 0.14, 1.3, 2.6]} castShadow>
+              <cylinderGeometry args={[0.08, 0.08, 2.6, 8]} />
+              <meshStandardMaterial color="#475569" metalness={0.8} />
+            </mesh>
+            {/* Illuminated Glass Double Doors */}
+            <mesh position={[0, 1.2, 0.02]}>
+              <planeGeometry args={[dimensions.x * 0.22, 2.3]} />
+              <meshStandardMaterial
+                color="#60A5FA"
+                roughness={0.1}
+                metalness={0.5}
+                transparent
+                opacity={0.7}
+              />
+            </mesh>
+          </group>
+
+          {/* Architectural Roof Overhang Slab */}
           <mesh position={[0, dimensions.y + 0.12, 0]} castShadow>
-            <boxGeometry args={[dimensions.x + 0.3, 0.25, dimensions.z + 0.3]} />
+            <boxGeometry args={[dimensions.x + 0.4, 0.25, dimensions.z + 0.4]} />
             <meshStandardMaterial
               color={roofColor}
               roughness={0.6}
@@ -184,24 +253,77 @@ export const Building3D: React.FC<Building3DProps> = ({ building }) => {
             />
           </mesh>
 
-          {/* Recessed Rooftop Gravel Inset */}
+          {/* Recessed Rooftop Inset */}
           {!transparentRoofs && (
             <mesh
               position={[0, dimensions.y + 0.26, 0]}
               rotation={[-Math.PI / 2, 0, 0]}
             >
               <planeGeometry args={[dimensions.x * 0.88, dimensions.z * 0.88]} />
-              <meshStandardMaterial color="#EFECE3" roughness={0.8} />
+              <meshStandardMaterial color="#E2E8F0" roughness={0.85} />
             </mesh>
           )}
 
-          {/* Penthouse Infrastructure */}
+          {/* Rooftop Penthouse & Mechanical HVAC Units */}
           {!transparentRoofs && (
-            <group position={[0, dimensions.y + 0.4, 0]}>
-              <mesh position={[-dimensions.x * 0.15, 0, 0]} castShadow>
-                <boxGeometry args={[dimensions.x * 0.25, 0.5, dimensions.z * 0.3]} />
-                <meshStandardMaterial color="#42545B" roughness={0.7} />
+            <group position={[0, dimensions.y + 0.26, 0]}>
+              {/* Elevator / Staircase Penthouse */}
+              <mesh position={[-dimensions.x * 0.16, 0.6, 0]} castShadow>
+                <boxGeometry args={[dimensions.x * 0.24, 1.2, dimensions.z * 0.32]} />
+                <meshStandardMaterial color="#334155" roughness={0.7} />
               </mesh>
+
+              {/* HVAC Chillers & Ventilation Ducting */}
+              <mesh position={[dimensions.x * 0.18, 0.4, -dimensions.z * 0.14]} castShadow>
+                <boxGeometry args={[dimensions.x * 0.18, 0.7, dimensions.z * 0.18]} />
+                <meshStandardMaterial color="#64748B" metalness={0.6} roughness={0.4} />
+              </mesh>
+              <mesh position={[dimensions.x * 0.18, 0.4, dimensions.z * 0.14]} castShadow>
+                <boxGeometry args={[dimensions.x * 0.18, 0.7, dimensions.z * 0.18]} />
+                <meshStandardMaterial color="#64748B" metalness={0.6} roughness={0.4} />
+              </mesh>
+
+              {/* Solar Panel Array on Roof */}
+              {hasSolar && (
+                <group position={[0, 0.2, 0]}>
+                  {[-1, 1].map((side) => (
+                    <mesh
+                      key={`solar-${side}`}
+                      position={[side * (dimensions.x * 0.24), 0.15, 0]}
+                      rotation={[-0.2, 0, 0]}
+                      castShadow
+                    >
+                      <boxGeometry args={[dimensions.x * 0.18, 0.04, dimensions.z * 0.45]} />
+                      <meshStandardMaterial color="#1E3A8A" metalness={0.85} roughness={0.2} />
+                    </mesh>
+                  ))}
+                </group>
+              )}
+
+              {/* Telecom Tower / Spire */}
+              {hasSpire && (
+                <group position={[0, 0.6, 0]}>
+                  <mesh position={[0, 2.5, 0]} castShadow>
+                    <cylinderGeometry args={[0.06, 0.18, 5.0, 8]} />
+                    <meshStandardMaterial color="#CBD5E1" metalness={0.9} />
+                  </mesh>
+                  {/* Flashing aviation warning beacon */}
+                  <mesh position={[0, 5.05, 0]}>
+                    <sphereGeometry args={[0.12, 8, 8]} />
+                    <meshBasicMaterial color="#EF4444" />
+                  </mesh>
+                </group>
+              )}
+
+              {/* Observatory Dome / Glass Lantern */}
+              {hasDome && (
+                <group position={[dimensions.x * 0.18, 0, 0]}>
+                  <mesh position={[0, 1.2, 0]} castShadow>
+                    <sphereGeometry args={[dimensions.z * 0.22, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.5]} />
+                    <meshStandardMaterial color="#CBD5E1" metalness={0.7} roughness={0.25} />
+                  </mesh>
+                </group>
+              )}
             </group>
           )}
         </group>
@@ -210,7 +332,7 @@ export const Building3D: React.FC<Building3DProps> = ({ building }) => {
       {/* Contextual Architectural Tag: Shown on hover or when selected */}
       {(showLabels || hovered || isSelected) && (
         <Html
-          position={[0, dimensions.y + 1.8, 0]}
+          position={[0, dimensions.y + 2.4, 0]}
           center
           distanceFactor={45}
           style={{
@@ -222,19 +344,19 @@ export const Building3D: React.FC<Building3DProps> = ({ building }) => {
             onClick={handlePointerDown}
             style={{
               background: '#FFFFFF',
-              border: `1px solid ${isSelected ? '#8FC9BE' : '#E6E1D6'}`,
+              border: `1px solid ${isSelected ? '#8FC9BE' : '#E2E8F0'}`,
               padding: '4px 10px',
-              borderRadius: '5px',
+              borderRadius: '6px',
               boxShadow: isSelected
-                ? '0 0 0 2px rgba(143, 201, 190, 0.45), 0 4px 14px rgba(37, 52, 58, 0.12)'
-                : '0 2px 8px rgba(37, 52, 58, 0.08)',
+                ? '0 0 0 2px rgba(143, 201, 190, 0.45), 0 4px 14px rgba(15, 23, 42, 0.12)'
+                : '0 2px 8px rgba(15, 23, 42, 0.08)',
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
               whiteSpace: 'nowrap',
               fontFamily: "'DM Sans', sans-serif",
               fontSize: '11.5px',
-              color: '#25343A',
+              color: '#1E293B',
               fontWeight: 600,
             }}
           >
@@ -242,8 +364,8 @@ export const Building3D: React.FC<Building3DProps> = ({ building }) => {
               style={{
                 fontFamily: "'Plus Jakarta Sans', sans-serif",
                 fontWeight: 700,
-                color: '#287A50',
-                background: '#EDF7F1',
+                color: '#10B981',
+                background: '#ECFDF5',
                 padding: '1px 6px',
                 borderRadius: '3px',
                 fontSize: '10.5px',
@@ -256,12 +378,12 @@ export const Building3D: React.FC<Building3DProps> = ({ building }) => {
               style={{
                 fontSize: '10px',
                 fontFamily: "'IBM Plex Mono', monospace",
-                color: '#64767A',
-                borderLeft: '1px solid #E6E1D6',
+                color: '#64748B',
+                borderLeft: '1px solid #E2E8F0',
                 paddingLeft: '6px',
               }}
             >
-              {dimensions.y}m ({building.heightSource === 'osm' ? 'OSM' : 'Est'}) · {building.floors}F
+              {dimensions.y}m · {building.floors}F
             </span>
           </div>
         </Html>

@@ -202,7 +202,7 @@ export const CampusScene: React.FC = () => {
           scene.fog = new THREE.FogExp2('#F7F4ED', 0.0032);
         }}
       >
-        <PerspectiveCamera makeDefault position={[52, 46, 62]} fov={38} near={0.5} far={800} />
+        <PerspectiveCamera makeDefault position={[68, 58, 82]} fov={38} near={0.5} far={1200} />
         <OrbitControls
           ref={controlsRef}
           makeDefault
@@ -210,28 +210,28 @@ export const CampusScene: React.FC = () => {
           dampingFactor={0.06}
           maxPolarAngle={Math.PI / 2.08}
           minDistance={8}
-          maxDistance={280}
+          maxDistance={450}
           target={[0, 2, 0]}
         />
 
         {/* Soft Sunlight & Balanced Sky Lighting */}
         <ambientLight intensity={0.78} color="#FFFFFF" />
         <directionalLight
-          position={[60, 80, 45]}
+          position={[80, 110, 65]}
           intensity={1.25}
           castShadow
           shadow-mapSize-width={2048}
           shadow-mapSize-height={2048}
           shadow-camera-near={10}
-          shadow-camera-far={220}
-          shadow-camera-left={-85}
-          shadow-camera-right={85}
-          shadow-camera-top={85}
-          shadow-camera-bottom={-85}
+          shadow-camera-far={320}
+          shadow-camera-left={-125}
+          shadow-camera-right={125}
+          shadow-camera-top={125}
+          shadow-camera-bottom={-125}
           shadow-bias={-0.00015}
           color="#FFFDF7"
         />
-        <directionalLight position={[-40, 30, -50]} intensity={0.35} color="#DAD5F2" />
+        <directionalLight position={[-60, 45, -70]} intensity={0.35} color="#DAD5F2" />
         <hemisphereLight intensity={0.45} color="#FFFFFF" groundColor="#EFECE3" />
 
         {/* 3D Scene Components */}

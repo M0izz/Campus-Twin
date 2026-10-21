@@ -108,7 +108,7 @@ export const ScenarioSchema = z.object({
   isDemo: z.boolean().optional(),
 });
 
-const STORAGE_KEY = 'campustwin_active_scenario_v2';
+const STORAGE_KEY = 'campustwin_active_scenario_v3';
 
 export function saveScenarioToLocalStorage(scenario: Scenario): boolean {
   try {
@@ -128,7 +128,12 @@ export function loadScenarioFromLocalStorage(): Scenario | null {
     const parsed = JSON.parse(raw);
     const result = ScenarioSchema.safeParse(parsed);
     if (result.success) {
-      return result.data as Scenario;
+      const scen = result.data as Scenario;
+      // Upgrade older 4-building scenarios to the new full 12-building campus
+      if (scen.id === 'campus-twin-main-quad' && scen.buildings.length < 8) {
+        return null;
+      }
+      return scen;
     }
     console.warn('Scenario validation failed on localStorage load:', result.error);
     return null;

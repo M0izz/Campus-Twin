@@ -58,15 +58,69 @@ export const MapOverlays: React.FC = () => {
           <div className="legend-header-row">
             <div className="legend-title">
               <Radio size={12} color="#287A50" />
-              <span>Calculated Wi-Fi RSSI</span>
+              <span>Calculated Wi-Fi RF</span>
             </div>
-            <button
-              className="legend-hide-btn"
-              onClick={() => toggleLayer('heatmap')}
-              title="Hide Heatmap"
-            >
-              ×
-            </button>
+            <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  background: '#F1EFEA',
+                  padding: '1px',
+                  borderRadius: '3px',
+                  fontSize: '9.5px',
+                  fontFamily: "'IBM Plex Mono', monospace",
+                  fontWeight: 600,
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => useCampusStore.getState().setLayer('heatmapMetric', 'rssi')}
+                  style={{
+                    background:
+                      (useCampusStore.getState().visualLayers.heatmapMetric ?? 'rssi') === 'rssi'
+                        ? '#287A50'
+                        : 'transparent',
+                    color:
+                      (useCampusStore.getState().visualLayers.heatmapMetric ?? 'rssi') === 'rssi'
+                        ? '#FFFFFF'
+                        : '#64767A',
+                    border: 'none',
+                    borderRadius: '2px',
+                    padding: '2px 5px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  RSSI
+                </button>
+                <button
+                  type="button"
+                  onClick={() => useCampusStore.getState().setLayer('heatmapMetric', 'congestion')}
+                  style={{
+                    background:
+                      useCampusStore.getState().visualLayers.heatmapMetric === 'congestion'
+                        ? '#D87834'
+                        : 'transparent',
+                    color:
+                      useCampusStore.getState().visualLayers.heatmapMetric === 'congestion'
+                        ? '#FFFFFF'
+                        : '#64767A',
+                    border: 'none',
+                    borderRadius: '2px',
+                    padding: '2px 5px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Load
+                </button>
+              </div>
+              <button
+                className="legend-hide-btn"
+                onClick={() => toggleLayer('heatmap')}
+                title="Hide Heatmap"
+              >
+                ×
+              </button>
+            </div>
           </div>
 
           {/* Continuous Scientific Spectral Gradient Bar */}
